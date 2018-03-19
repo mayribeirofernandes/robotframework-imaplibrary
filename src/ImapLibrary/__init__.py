@@ -100,6 +100,11 @@ class ImapLibrary(object):
         Examples:
         | Delete All Emails |
         """
+        typ, mails = self._imap.uid('search', None, 'ALL')
+        self._mails = mails[0].split()
+
+        print("Deleting e-mails from ID: [{0}]".format(', '.join(map(str, self._mails))))
+
         for mail in self._mails:
             self.delete_email(mail)
         self._imap.expunge()
@@ -134,6 +139,26 @@ class ImapLibrary(object):
                                   '(BODY[TEXT])')[1][0][1].\
                 decode('quoted-printable')
         return body
+
+    def decode_email_body(self, body_email_encoded):
+        """Returns the email body encoded on base64 decoded to a string UTF-8.
+
+        Arguments:
+        - ``body_email_encoded``: An string from the email body encoded on base64.
+
+        Examples:
+        | ${BODY}           | Get Email Body    | ${EMAIL_INDEX} |
+        | ${BODYDECODED}    | Decode Email Body | ${BODY}        |
+        | Log               | ${BODY}           |
+        """
+        print("Deconding [%s] to string." % (body_email_encoded))
+
+        if not body_email_encoded.endswith("=="):
+            body_email_encoded = body_email_encoded + "=="
+
+        email_decoded = base64.b64decode(body_email_encoded)
+
+        return email_decoded.decode('UTF-8')
 
     def get_links_from_email(self, email_index):
         """Returns all links found in the email body from given ``email_index``.
